@@ -58,30 +58,18 @@ def add_order() -> None:
         st.session_state.order_notice = None
         return
 
-    order_id = st.session_state.next_order_id
     st.session_state.orders.append(
         {
-            "id": order_id,
             "item_id": item_id,
             "name": CATALOG[item_id]["name"],
             "price": CATALOG[item_id]["price"],
             "quantity": quantity,
         }
     )
-    st.session_state.next_order_id += 1
     st.session_state.item_number = ""
     st.session_state.quantity_kg = ""
     st.session_state.order_error = None
     st.session_state.order_notice = f"{CATALOG[item_id]['name']} added to your order."
-    clear_receipt()
-
-
-def remove_order(order_id: int) -> None:
-    st.session_state.orders = [
-        order for order in st.session_state.orders if order["id"] != order_id
-    ]
-    st.session_state.order_notice = None
-    st.session_state.order_error = None
     clear_receipt()
 
 
@@ -118,7 +106,6 @@ st.set_page_config(page_title="Sugar & Sprinkles Candy Shop", layout="centered")
 
 for key, default in (
     ("orders", []),
-    ("next_order_id", 1),
     ("receipt", None),
     ("order_error", None),
     ("order_notice", None),
@@ -174,21 +161,11 @@ with order_column:
         else:
             for order in st.session_state.orders:
                 item_total = order["price"] * order["quantity"]
-                item_column, remove_column = st.columns([5, 1])
-                with item_column:
-                    st.write(f"**{order['name']}**")
-                    st.caption(
-                        f"{order['quantity']:,.3f} kg × {money(order['price'])}/kg"
-                    )
-                    st.write(money(item_total))
-                with remove_column:
-                    st.button(
-                        "X",
-                        key=f"remove_{order['id']}",
-                        help=f"Remove {order['name']} from your order",
-                        on_click=remove_order,
-                        args=(order["id"],),
-                    )
+                st.write(f"**{order['name']}**")
+                st.caption(
+                    f"{order['quantity']:,.3f} kg × {money(order['price'])}/kg"
+                )
+                st.write(money(item_total))
 
         st.button(
             "Calculate Final Total",
