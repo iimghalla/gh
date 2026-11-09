@@ -73,6 +73,13 @@ def add_order() -> None:
     clear_receipt()
 
 
+def remove_order(order_index: int) -> None:
+    st.session_state.orders.pop(order_index)
+    st.session_state.order_notice = None
+    st.session_state.order_error = None
+    clear_receipt()
+
+
 def calculate_receipt() -> None:
     name = st.session_state.get("customer_name", "").strip()
     orders = st.session_state.orders
@@ -159,13 +166,23 @@ with order_column:
         if not st.session_state.orders:
             st.caption("Your order list is empty.")
         else:
-            for order in st.session_state.orders:
+            for order_index, order in enumerate(st.session_state.orders):
                 item_total = order["price"] * order["quantity"]
-                st.write(f"**{order['name']}**")
-                st.caption(
-                    f"{order['quantity']:,.3f} kg × {money(order['price'])}/kg"
-                )
-                st.write(money(item_total))
+                item_column, remove_column = st.columns([5, 1])
+                with item_column:
+                    st.write(f"**{order['name']}**")
+                    st.caption(
+                        f"{order['quantity']:,.3f} kg × {money(order['price'])}/kg"
+                    )
+                    st.write(money(item_total))
+                with remove_column:
+                    st.button(
+                        "X",
+                        key=f"remove_order_{order_index}",
+                        help=f"Remove {order['name']} from your order",
+                        on_click=remove_order,
+                        args=(order_index,),
+                    )
 
         st.button(
             "Calculate Final Total",
